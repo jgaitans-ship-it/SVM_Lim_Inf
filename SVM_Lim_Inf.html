@@ -1,0 +1,1770 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.27">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Julio César Gaitán Silva">
+
+<title>SVM_Lim_Inf</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="SVM_Lim_Inf_files/libs/clipboard/clipboard.min.js"></script>
+<script src="SVM_Lim_Inf_files/libs/quarto-html/quarto.js" type="module"></script>
+<script src="SVM_Lim_Inf_files/libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="SVM_Lim_Inf_files/libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="SVM_Lim_Inf_files/libs/quarto-html/popper.min.js"></script>
+<script src="SVM_Lim_Inf_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="SVM_Lim_Inf_files/libs/quarto-html/anchor.min.js"></script>
+<link href="SVM_Lim_Inf_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="SVM_Lim_Inf_files/libs/quarto-html/quarto-syntax-highlighting-ed96de9b727972fe78a7b5d16c58bf87.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="SVM_Lim_Inf_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="SVM_Lim_Inf_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="SVM_Lim_Inf_files/libs/bootstrap/bootstrap-9e3ffae467580fdb927a41352e75a2e0.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+
+
+</head>
+
+<body class="fullcontent quarto-light">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">SVM_Lim_Inf</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Julio César Gaitán Silva </p>
+          </div>
+  </div>
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="cargar-librerías" class="level1">
+<h1>1. Cargar librerías</h1>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(terra)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>terra 1.8.80</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(raster)       <span class="co"># Para trabajar con datos raster</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Cargando paquete requerido: sp</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(sf)           <span class="co"># Para manipulación de datos espaciales</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Linking to GEOS 3.13.1, GDAL 3.11.4, PROJ 9.7.0; sf_use_s2() is TRUE</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(openxlsx)     <span class="co"># Para manejar archivos Excel</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)    <span class="co"># Conjunto de paquetes para manipulación de datos\library(DataExplorer) # Exploración de datos</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
+✔ dplyr     1.1.4     ✔ readr     2.1.6
+✔ forcats   1.0.1     ✔ stringr   1.6.0
+✔ ggplot2   4.0.1     ✔ tibble    3.3.0
+✔ lubridate 1.9.4     ✔ tidyr     1.3.1
+✔ purrr     1.2.0     </code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+✖ tidyr::extract() masks raster::extract(), terra::extract()
+✖ dplyr::filter()  masks stats::filter()
+✖ dplyr::lag()     masks stats::lag()
+✖ dplyr::select()  masks raster::select()
+ℹ Use the conflicted package (&lt;http://conflicted.r-lib.org/&gt;) to force all conflicts to become errors</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tmap)        <span class="co"># Visualización de mapas\library(ithir)       # Modelado de suelos</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(aqp)         <span class="co"># Análisis de perfiles de suelo</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>This is aqp 2.2-1
+
+Adjuntando el paquete: 'aqp'
+
+The following objects are masked from 'package:dplyr':
+
+    combine, slice
+
+The following objects are masked from 'package:raster':
+
+    coordinates, metadata, metadata&lt;-, proj4string
+
+The following objects are masked from 'package:sp':
+
+    coordinates, coordinates&lt;-, proj4string, proj4string&lt;-</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(readxl)</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(kernlab)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>
+Adjuntando el paquete: 'kernlab'
+
+The following object is masked from 'package:purrr':
+
+    cross
+
+The following object is masked from 'package:ggplot2':
+
+    alpha
+
+The following objects are masked from 'package:raster':
+
+    buffer, rotated
+
+The following objects are masked from 'package:terra':
+
+    buffer, size</code></pre>
+</div>
+</div>
+</section>
+<section id="carpeta-donde-están-todos-los-rásters-ya-procesados" class="level1">
+<h1>2. Carpeta donde están TODOS los rásters ya procesados</h1>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>ruta <span class="ot">&lt;-</span> <span class="st">"D:/Meta_vichada/aligned/"</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>rasters_sel <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>  <span class="co">#"Aspect.tif",</span></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>  <span class="st">"CI.tif"</span>,</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>  <span class="st">"C.O.tif"</span>,</span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>  <span class="co">#"Convergence_Index.tif",</span></span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>  <span class="co">#"Hillshade.tif",</span></span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>  <span class="st">"HH.tif"</span>,</span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>  <span class="st">"HV.tif"</span>,</span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>  <span class="st">"LS_Factor.tif"</span>,</span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>  <span class="st">"MCARI.tif"</span>,</span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>  <span class="st">"NDTI.tif"</span>,</span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>  <span class="co">#"Plan_Curvature.tif",</span></span>
+<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a>  <span class="co">#"Precipitación.tif",</span></span>
+<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a>  <span class="co">#"Profile_Curvature.tif",</span></span>
+<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Relative_Slope_Position.tif"</span>,</span>
+<span id="cb14-18"><a href="#cb14-18" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Suelos_.tif"</span>,</span>
+<span id="cb14-19"><a href="#cb14-19" aria-hidden="true" tabindex="-1"></a>  <span class="co">#"Temperatura_Media_.tif",</span></span>
+<span id="cb14-20"><a href="#cb14-20" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Topographic_Wetness_Index.tif"</span>,</span>
+<span id="cb14-21"><a href="#cb14-21" aria-hidden="true" tabindex="-1"></a>  <span class="co">#"Total_Catchment_Area.tif",</span></span>
+<span id="cb14-22"><a href="#cb14-22" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Valley_Depth.tif"</span></span>
+<span id="cb14-23"><a href="#cb14-23" aria-hidden="true" tabindex="-1"></a>  <span class="co">#"GNDVI.tif",</span></span>
+<span id="cb14-24"><a href="#cb14-24" aria-hidden="true" tabindex="-1"></a>  <span class="co">#"BSI.tif",</span></span>
+<span id="cb14-25"><a href="#cb14-25" aria-hidden="true" tabindex="-1"></a>  <span class="co">#"Channel_Network_Base_Level.tif",</span></span>
+<span id="cb14-26"><a href="#cb14-26" aria-hidden="true" tabindex="-1"></a>  <span class="co">#"Channel_Network_Distance.tif",</span></span>
+<span id="cb14-27"><a href="#cb14-27" aria-hidden="true" tabindex="-1"></a>  <span class="co">#"DEM.tif",</span></span>
+<span id="cb14-28"><a href="#cb14-28" aria-hidden="true" tabindex="-1"></a>  <span class="co">#"EVI.tif",</span></span>
+<span id="cb14-29"><a href="#cb14-29" aria-hidden="true" tabindex="-1"></a>  <span class="co">#"NBR.tif",</span></span>
+<span id="cb14-30"><a href="#cb14-30" aria-hidden="true" tabindex="-1"></a>  <span class="co">#"NDVI.tif",</span></span>
+<span id="cb14-31"><a href="#cb14-31" aria-hidden="true" tabindex="-1"></a>  <span class="co">#"NDWI.tif",</span></span>
+<span id="cb14-32"><a href="#cb14-32" aria-hidden="true" tabindex="-1"></a>  <span class="co">#"SAVI.tif",</span></span>
+<span id="cb14-33"><a href="#cb14-33" aria-hidden="true" tabindex="-1"></a>  <span class="co">#"Slope.tif"</span></span>
+<span id="cb14-34"><a href="#cb14-34" aria-hidden="true" tabindex="-1"></a>  <span class="co">#"Temperatura_Maxima_.tif",</span></span>
+<span id="cb14-35"><a href="#cb14-35" aria-hidden="true" tabindex="-1"></a>  <span class="co">#"Temperatura_Minima_.tif",</span></span>
+<span id="cb14-36"><a href="#cb14-36" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="construir-rutas-completas-solo-de-los-seleccionados" class="level1">
+<h1>3. Construir rutas completas SOLO de los seleccionados</h1>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>files_sel <span class="ot">&lt;-</span> <span class="fu">file.path</span>(ruta, rasters_sel)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="verificar-cuáles-existen-control-de-errores" class="level1">
+<h1>4. Verificar cuáles existen (control de errores)</h1>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>files_sel <span class="ot">&lt;-</span> files_sel[<span class="fu">file.exists</span>(files_sel)]</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Si alguno falta, aquí lo ves</span></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">basename</span>(files_sel))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code> [1] "CI.tif"                        "C.O.tif"                      
+ [3] "HH.tif"                        "HV.tif"                       
+ [5] "LS_Factor.tif"                 "MCARI.tif"                    
+ [7] "NDTI.tif"                      "Relative_Slope_Position.tif"  
+ [9] "Suelos_.tif"                   "Topographic_Wetness_Index.tif"
+[11] "Valley_Depth.tif"             </code></pre>
+</div>
+</div>
+</section>
+<section id="cargar-como-spatraster" class="level1">
+<h1>5. Cargar como SpatRaster</h1>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>raster <span class="ot">&lt;-</span> <span class="fu">rast</span>(files_sel)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="verificación-rápida" class="level1">
+<h1>6. Verificación rápida</h1>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="fu">compareGeom</span>(raster, raster[[<span class="dv">1</span>]], <span class="at">stopOnError =</span> <span class="cn">TRUE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] TRUE</code></pre>
+</div>
+</div>
+</section>
+<section id="visualización" class="level1">
+<h1>7. Visualización</h1>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(raster)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="SVM_Lim_Inf_files/figure-html/unnamed-chunk-7-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="obtener-coordenadas-únicas" class="level1">
+<h1>8. Obtener coordenadas únicas</h1>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>SCHS <span class="ot">&lt;-</span> <span class="fu">read_excel</span>(<span class="st">"D:/MAESTRIA/Trabajo_final/SCHS.xlsx"</span>)</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>Coor <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">Perfil_COD1=</span>SCHS<span class="sc">$</span>Perfil_COD1,</span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>                 <span class="at">Latitud =</span> SCHS<span class="sc">$</span>Latitud,</span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>                 <span class="at">Longitud =</span> SCHS<span class="sc">$</span>Longitud,</span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>                 <span class="at">Lim_inf =</span> SCHS<span class="sc">$</span>lim_inf )</span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a><span class="fu">View</span>(Coor)</span>
+<span id="cb22-11"><a href="#cb22-11" aria-hidden="true" tabindex="-1"></a><span class="fu">str</span>(Coor)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>'data.frame':   225 obs. of  4 variables:
+ $ Perfil_COD1: chr  "AR-011" "AR-021" "AR-026" "AR-043" ...
+ $ Latitud    : num  3.36 3.5 3.46 3.38 4.5 ...
+ $ Longitud   : num  -73.7 -74 -73.9 -73.7 -71.3 ...
+ $ Lim_inf    : num  40.2 43.7 36.9 54.4 87.4 ...</code></pre>
+</div>
+</div>
+</section>
+<section id="convertir-a-formato-espacial-sf" class="level1">
+<h1>9. Convertir a formato espacial (sf)</h1>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>data_final_sf <span class="ot">&lt;-</span> <span class="fu">st_as_sf</span>(<span class="at">x =</span> Coor,</span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>                          <span class="at">coords =</span> <span class="fu">c</span>(<span class="st">"Longitud"</span>, <span class="st">"Latitud"</span>),</span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>                          <span class="at">crs =</span> <span class="fu">st_crs</span>(<span class="dv">4326</span>))</span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a><span class="fu">view</span>(data_final_sf)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="visualizar-los-puntos-sobre-el-modelo-de-elevación-dem" class="level1">
+<h1>10. Visualizar los puntos sobre el modelo de elevación (DEM)</h1>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(raster<span class="sc">$</span>Topographic_Wetness_Index)</span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(<span class="fu">st_geometry</span>(data_final_sf), <span class="at">add =</span> <span class="cn">TRUE</span>, <span class="at">col=</span> <span class="st">"red"</span>, <span class="at">pch =</span> <span class="dv">16</span>, <span class="at">lwd =</span> <span class="dv">2</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="SVM_Lim_Inf_files/figure-html/unnamed-chunk-10-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="visualización-con-tmap" class="level1">
+<h1>11. Visualización con tmap</h1>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tm_shape</span>(raster<span class="sc">$</span>Topographic_Wetness_Index) <span class="sc">+</span></span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_raster</span>(<span class="at">palette =</span> <span class="fu">c</span>(<span class="st">"#CCCCCC"</span>, <span class="st">"#999999"</span>, <span class="st">"#666666"</span>, <span class="st">"#333333"</span>, <span class="st">"#000000"</span>)) <span class="sc">+</span></span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_shape</span>(data_final_sf) <span class="sc">+</span></span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_dots</span>(<span class="st">"Lim_sup"</span>, <span class="at">palette =</span> <span class="st">"-RdYlBu"</span>, <span class="at">size =</span> <span class="fl">0.25</span>) <span class="sc">+</span></span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_layout</span>(<span class="st">"Mapa Lim_Sup cm"</span>) <span class="sc">+</span></span>
+<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_compass</span>() <span class="sc">+</span></span>
+<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_scale_bar</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stderr">
+<pre><code></code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>── tmap v3 code detected ───────────────────────────────────────────────────────</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>[v3-&gt;v4] `tm_tm_raster()`: migrate the argument(s) related to the scale of the
+visual variable `col` namely 'palette' (rename to 'values') to col.scale =
+tm_scale(&lt;HERE&gt;).
+[v3-&gt;v4] `tm_tm_dots()`: migrate the argument(s) related to the scale of the
+visual variable `fill` namely 'palette' (rename to 'values') to fill.scale =
+tm_scale(&lt;HERE&gt;).
+[v3-&gt;v4] `tm_layout()`: use `tm_title()` instead of `tm_layout(title = )`
+! `tm_scale_bar()` is deprecated. Please use `tm_scalebar()` instead.
+SpatRaster object downsampled to 2505 by 3993 cells.</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="SVM_Lim_Inf_files/figure-html/unnamed-chunk-11-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="extraer-valores-raster-en-los-puntos-espaciales" class="level1">
+<h1>12. Extraer valores raster en los puntos espaciales</h1>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>extraccion <span class="ot">&lt;-</span> terra<span class="sc">::</span><span class="fu">extract</span>(raster, <span class="fu">vect</span>(data_final_sf))</span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>data_sf <span class="ot">&lt;-</span> <span class="fu">cbind</span>(data_final_sf, extraccion[, <span class="sc">-</span><span class="dv">1</span>])</span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a><span class="fu">view</span> (data_sf)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="modelamiento--" class="level1">
+<h1>13. Modelamiento —————————————————————-</h1>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(caret)        <span class="co"># Para ajuste de modelos</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Cargando paquete requerido: lattice</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>
+Adjuntando el paquete: 'caret'</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>The following object is masked from 'package:purrr':
+
+    lift</code></pre>
+</div>
+</div>
+</section>
+<section id="resumen-de-los-datos-espaciales" class="level1">
+<h1>14. Resumen de los datos espaciales</h1>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb35"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(data_sf)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code> Perfil_COD1           Lim_inf             CI              C.O       
+ Length:225         Min.   : 14.00   Min.   :0.1548   Min.   :16.10  
+ Class :character   1st Qu.: 38.01   1st Qu.:0.5939   1st Qu.:22.62  
+ Mode  :character   Median : 50.20   Median :0.7866   Median :25.25  
+                    Mean   : 59.87   Mean   :0.9230   Mean   :26.68  
+                    3rd Qu.: 76.00   3rd Qu.:1.1672   3rd Qu.:31.79  
+                    Max.   :180.00   Max.   :2.3920   Max.   :70.25  
+       HH                HV            LS_Factor             MCARI         
+ Min.   :-21.077   Min.   :-31.215   Min.   : 0.000109   Min.   :0.008303  
+ 1st Qu.:-14.270   1st Qu.:-23.700   1st Qu.: 0.187458   1st Qu.:0.048938  
+ Median :-11.418   Median :-19.620   Median : 0.400085   Median :0.062091  
+ Mean   :-11.621   Mean   :-19.575   Mean   : 1.368948   Mean   :0.063347  
+ 3rd Qu.: -8.405   3rd Qu.:-15.374   3rd Qu.: 1.022462   3rd Qu.:0.077835  
+ Max.   : -2.833   Max.   : -8.273   Max.   :42.507114   Max.   :0.133466  
+      NDTI         Relative_Slope_Position    Suelos_     
+ Min.   :0.02205   Min.   :0.000000        Min.   : 0.00  
+ 1st Qu.:0.16568   1st Qu.:0.001673        1st Qu.: 4.00  
+ Median :0.18370   Median :0.008315        Median :17.00  
+ Mean   :0.17972   Mean   :0.037083        Mean   :23.09  
+ 3rd Qu.:0.20163   3rd Qu.:0.033621        3rd Qu.:40.00  
+ Max.   :0.23763   Max.   :0.781887        Max.   :57.00  
+ Topographic_Wetness_Index  Valley_Depth              geometry  
+ Min.   : 5.026            Min.   :  4.941   POINT        :225  
+ 1st Qu.: 7.364            1st Qu.:121.764   epsg:4326    :  0  
+ Median : 8.340            Median :195.087   +proj=long...:  0  
+ Mean   : 9.751            Mean   :237.062                      
+ 3rd Qu.:10.840            3rd Qu.:304.421                      
+ Max.   :25.343            Max.   :770.234                      </code></pre>
+</div>
+</div>
+</section>
+<section id="convertir-a-dataframe-para-modelado-no-se-tiene-en-cuenta-la-columna-id" class="level1">
+<h1>15. Convertir a dataframe para modelado, no se tiene en cuenta la columna ID</h1>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb37"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a>data_sf_df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(data_sf)[<span class="dv">2</span><span class="sc">:</span><span class="dv">13</span>]</span>
+<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a>data_sf_df <span class="ot">&lt;-</span> <span class="fu">na.omit</span>(data_sf_df)<span class="co">#</span></span>
+<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(data_sf_df)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>    Lim_inf             CI              C.O              HH         
+ Min.   : 14.00   Min.   :0.1548   Min.   :16.10   Min.   :-21.077  
+ 1st Qu.: 38.01   1st Qu.:0.5939   1st Qu.:22.62   1st Qu.:-14.270  
+ Median : 50.20   Median :0.7866   Median :25.25   Median :-11.418  
+ Mean   : 59.87   Mean   :0.9230   Mean   :26.68   Mean   :-11.621  
+ 3rd Qu.: 76.00   3rd Qu.:1.1672   3rd Qu.:31.79   3rd Qu.: -8.405  
+ Max.   :180.00   Max.   :2.3920   Max.   :70.25   Max.   : -2.833  
+       HV            LS_Factor             MCARI               NDTI        
+ Min.   :-31.215   Min.   : 0.000109   Min.   :0.008303   Min.   :0.02205  
+ 1st Qu.:-23.700   1st Qu.: 0.187458   1st Qu.:0.048938   1st Qu.:0.16568  
+ Median :-19.620   Median : 0.400085   Median :0.062091   Median :0.18370  
+ Mean   :-19.575   Mean   : 1.368948   Mean   :0.063347   Mean   :0.17972  
+ 3rd Qu.:-15.374   3rd Qu.: 1.022462   3rd Qu.:0.077835   3rd Qu.:0.20163  
+ Max.   : -8.273   Max.   :42.507114   Max.   :0.133466   Max.   :0.23763  
+ Relative_Slope_Position    Suelos_      Topographic_Wetness_Index
+ Min.   :0.000000        Min.   : 0.00   Min.   : 5.026           
+ 1st Qu.:0.001673        1st Qu.: 4.00   1st Qu.: 7.364           
+ Median :0.008315        Median :17.00   Median : 8.340           
+ Mean   :0.037083        Mean   :23.09   Mean   : 9.751           
+ 3rd Qu.:0.033621        3rd Qu.:40.00   3rd Qu.:10.840           
+ Max.   :0.781887        Max.   :57.00   Max.   :25.343           
+  Valley_Depth    
+ Min.   :  4.941  
+ 1st Qu.:121.764  
+ Median :195.087  
+ Mean   :237.062  
+ 3rd Qu.:304.421  
+ Max.   :770.234  </code></pre>
+</div>
+</div>
+</section>
+<section id="mejor-semilla-particion-de-datos-y-mejor-modelo" class="level1">
+<h1>16.Mejor Semilla particion de datos y mejor modelo</h1>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb39"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(caret)</span>
+<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a>resultados_Lim_Inf_SVM <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb39-4"><a href="#cb39-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">seed =</span> <span class="fu">integer</span>(),</span>
+<span id="cb39-5"><a href="#cb39-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">C =</span> <span class="fu">numeric</span>(),</span>
+<span id="cb39-6"><a href="#cb39-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">sigma =</span> <span class="fu">numeric</span>(),</span>
+<span id="cb39-7"><a href="#cb39-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">RMSE_train =</span> <span class="fu">numeric</span>(),</span>
+<span id="cb39-8"><a href="#cb39-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">R2_train =</span> <span class="fu">numeric</span>(),</span>
+<span id="cb39-9"><a href="#cb39-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">RMSE_test =</span> <span class="fu">numeric</span>(),</span>
+<span id="cb39-10"><a href="#cb39-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">R2_test =</span> <span class="fu">numeric</span>()</span>
+<span id="cb39-11"><a href="#cb39-11" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb39-12"><a href="#cb39-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-13"><a href="#cb39-13" aria-hidden="true" tabindex="-1"></a>best_rmse  <span class="ot">&lt;-</span> <span class="cn">Inf</span></span>
+<span id="cb39-14"><a href="#cb39-14" aria-hidden="true" tabindex="-1"></a>best_model <span class="ot">&lt;-</span> <span class="cn">NULL</span></span>
+<span id="cb39-15"><a href="#cb39-15" aria-hidden="true" tabindex="-1"></a>best_seed  <span class="ot">&lt;-</span> <span class="cn">NA</span></span>
+<span id="cb39-16"><a href="#cb39-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-17"><a href="#cb39-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-18"><a href="#cb39-18" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (s <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">500</span>) {</span>
+<span id="cb39-19"><a href="#cb39-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-20"><a href="#cb39-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">set.seed</span>(s)</span>
+<span id="cb39-21"><a href="#cb39-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-22"><a href="#cb39-22" aria-hidden="true" tabindex="-1"></a>  index <span class="ot">&lt;-</span> <span class="fu">createDataPartition</span>(</span>
+<span id="cb39-23"><a href="#cb39-23" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> data_sf_df<span class="sc">$</span>Lim_inf,</span>
+<span id="cb39-24"><a href="#cb39-24" aria-hidden="true" tabindex="-1"></a>    <span class="at">p =</span> <span class="fl">0.70</span>,</span>
+<span id="cb39-25"><a href="#cb39-25" aria-hidden="true" tabindex="-1"></a>    <span class="at">list =</span> <span class="cn">FALSE</span></span>
+<span id="cb39-26"><a href="#cb39-26" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb39-27"><a href="#cb39-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-28"><a href="#cb39-28" aria-hidden="true" tabindex="-1"></a>  train <span class="ot">&lt;-</span> data_sf_df[index, ]</span>
+<span id="cb39-29"><a href="#cb39-29" aria-hidden="true" tabindex="-1"></a>  test  <span class="ot">&lt;-</span> data_sf_df[<span class="sc">-</span>index, ]</span>
+<span id="cb39-30"><a href="#cb39-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-31"><a href="#cb39-31" aria-hidden="true" tabindex="-1"></a>  train_control <span class="ot">&lt;-</span> <span class="fu">trainControl</span>(</span>
+<span id="cb39-32"><a href="#cb39-32" aria-hidden="true" tabindex="-1"></a>    <span class="at">method =</span> <span class="st">"cv"</span>,</span>
+<span id="cb39-33"><a href="#cb39-33" aria-hidden="true" tabindex="-1"></a>    <span class="at">number =</span> <span class="dv">10</span>,</span>
+<span id="cb39-34"><a href="#cb39-34" aria-hidden="true" tabindex="-1"></a>    <span class="at">allowParallel =</span> <span class="cn">TRUE</span></span>
+<span id="cb39-35"><a href="#cb39-35" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb39-36"><a href="#cb39-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-37"><a href="#cb39-37" aria-hidden="true" tabindex="-1"></a>  GRID_SVM <span class="ot">&lt;-</span> <span class="fu">expand.grid</span>(</span>
+<span id="cb39-38"><a href="#cb39-38" aria-hidden="true" tabindex="-1"></a>    <span class="at">sigma =</span> <span class="fu">c</span>(<span class="fl">0.01</span>, <span class="fl">0.05</span>, <span class="fl">0.1</span>),</span>
+<span id="cb39-39"><a href="#cb39-39" aria-hidden="true" tabindex="-1"></a>    <span class="at">C =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">5</span>, <span class="dv">10</span>)</span>
+<span id="cb39-40"><a href="#cb39-40" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb39-41"><a href="#cb39-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-42"><a href="#cb39-42" aria-hidden="true" tabindex="-1"></a>  best_rmse_seed   <span class="ot">&lt;-</span> <span class="cn">Inf</span></span>
+<span id="cb39-43"><a href="#cb39-43" aria-hidden="true" tabindex="-1"></a>  best_model_seed  <span class="ot">&lt;-</span> <span class="cn">NULL</span></span>
+<span id="cb39-44"><a href="#cb39-44" aria-hidden="true" tabindex="-1"></a>  best_C_seed      <span class="ot">&lt;-</span> <span class="cn">NA</span></span>
+<span id="cb39-45"><a href="#cb39-45" aria-hidden="true" tabindex="-1"></a>  best_sigma_seed  <span class="ot">&lt;-</span> <span class="cn">NA</span></span>
+<span id="cb39-46"><a href="#cb39-46" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-47"><a href="#cb39-47" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(GRID_SVM)) {</span>
+<span id="cb39-48"><a href="#cb39-48" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-49"><a href="#cb39-49" aria-hidden="true" tabindex="-1"></a>    modelo <span class="ot">&lt;-</span> <span class="fu">train</span>(</span>
+<span id="cb39-50"><a href="#cb39-50" aria-hidden="true" tabindex="-1"></a>      Lim_inf <span class="sc">~</span> .,</span>
+<span id="cb39-51"><a href="#cb39-51" aria-hidden="true" tabindex="-1"></a>      <span class="at">data =</span> train,</span>
+<span id="cb39-52"><a href="#cb39-52" aria-hidden="true" tabindex="-1"></a>      <span class="at">method =</span> <span class="st">"svmRadial"</span>,</span>
+<span id="cb39-53"><a href="#cb39-53" aria-hidden="true" tabindex="-1"></a>      <span class="at">trControl =</span> train_control,</span>
+<span id="cb39-54"><a href="#cb39-54" aria-hidden="true" tabindex="-1"></a>      <span class="at">tuneGrid =</span> GRID_SVM[i, , <span class="at">drop =</span> <span class="cn">FALSE</span>],</span>
+<span id="cb39-55"><a href="#cb39-55" aria-hidden="true" tabindex="-1"></a>      <span class="at">preProcess =</span> <span class="fu">c</span>(<span class="st">"center"</span>, <span class="st">"scale"</span>)</span>
+<span id="cb39-56"><a href="#cb39-56" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb39-57"><a href="#cb39-57" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-58"><a href="#cb39-58" aria-hidden="true" tabindex="-1"></a>    pred <span class="ot">&lt;-</span> <span class="fu">predict</span>(modelo, test)</span>
+<span id="cb39-59"><a href="#cb39-59" aria-hidden="true" tabindex="-1"></a>    RMSE_test <span class="ot">&lt;-</span> <span class="fu">RMSE</span>(pred, test<span class="sc">$</span>Lim_inf)</span>
+<span id="cb39-60"><a href="#cb39-60" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-61"><a href="#cb39-61" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (RMSE_test <span class="sc">&lt;</span> best_rmse_seed) {</span>
+<span id="cb39-62"><a href="#cb39-62" aria-hidden="true" tabindex="-1"></a>      best_rmse_seed  <span class="ot">&lt;-</span> RMSE_test</span>
+<span id="cb39-63"><a href="#cb39-63" aria-hidden="true" tabindex="-1"></a>      best_model_seed <span class="ot">&lt;-</span> modelo</span>
+<span id="cb39-64"><a href="#cb39-64" aria-hidden="true" tabindex="-1"></a>      best_C_seed     <span class="ot">&lt;-</span> GRID_SVM<span class="sc">$</span>C[i]</span>
+<span id="cb39-65"><a href="#cb39-65" aria-hidden="true" tabindex="-1"></a>      best_sigma_seed <span class="ot">&lt;-</span> GRID_SVM<span class="sc">$</span>sigma[i]</span>
+<span id="cb39-66"><a href="#cb39-66" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb39-67"><a href="#cb39-67" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb39-68"><a href="#cb39-68" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-69"><a href="#cb39-69" aria-hidden="true" tabindex="-1"></a>  train_metrics <span class="ot">&lt;-</span> best_model_seed<span class="sc">$</span>results[</span>
+<span id="cb39-70"><a href="#cb39-70" aria-hidden="true" tabindex="-1"></a>    best_model_seed<span class="sc">$</span>results<span class="sc">$</span>C <span class="sc">==</span> best_C_seed <span class="sc">&amp;</span></span>
+<span id="cb39-71"><a href="#cb39-71" aria-hidden="true" tabindex="-1"></a>    best_model_seed<span class="sc">$</span>results<span class="sc">$</span>sigma <span class="sc">==</span> best_sigma_seed, ]</span>
+<span id="cb39-72"><a href="#cb39-72" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-73"><a href="#cb39-73" aria-hidden="true" tabindex="-1"></a>  RMSE_train <span class="ot">&lt;-</span> train_metrics<span class="sc">$</span>RMSE</span>
+<span id="cb39-74"><a href="#cb39-74" aria-hidden="true" tabindex="-1"></a>  R2_train   <span class="ot">&lt;-</span> train_metrics<span class="sc">$</span>Rsquared</span>
+<span id="cb39-75"><a href="#cb39-75" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-76"><a href="#cb39-76" aria-hidden="true" tabindex="-1"></a>  pred <span class="ot">&lt;-</span> <span class="fu">predict</span>(best_model_seed, test)</span>
+<span id="cb39-77"><a href="#cb39-77" aria-hidden="true" tabindex="-1"></a>  RMSE_test <span class="ot">&lt;-</span> <span class="fu">RMSE</span>(pred, test<span class="sc">$</span>Lim_inf)</span>
+<span id="cb39-78"><a href="#cb39-78" aria-hidden="true" tabindex="-1"></a>  R2_test   <span class="ot">&lt;-</span> <span class="fu">cor</span>(pred, test<span class="sc">$</span>Lim_inf)<span class="sc">^</span><span class="dv">2</span></span>
+<span id="cb39-79"><a href="#cb39-79" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-80"><a href="#cb39-80" aria-hidden="true" tabindex="-1"></a>  resultados_Lim_Inf_SVM <span class="ot">&lt;-</span> <span class="fu">rbind</span>(</span>
+<span id="cb39-81"><a href="#cb39-81" aria-hidden="true" tabindex="-1"></a>    resultados_Lim_Inf_SVM,</span>
+<span id="cb39-82"><a href="#cb39-82" aria-hidden="true" tabindex="-1"></a>    <span class="fu">data.frame</span>(</span>
+<span id="cb39-83"><a href="#cb39-83" aria-hidden="true" tabindex="-1"></a>      <span class="at">seed =</span> s,</span>
+<span id="cb39-84"><a href="#cb39-84" aria-hidden="true" tabindex="-1"></a>      <span class="at">C =</span> best_C_seed,</span>
+<span id="cb39-85"><a href="#cb39-85" aria-hidden="true" tabindex="-1"></a>      <span class="at">sigma =</span> best_sigma_seed,</span>
+<span id="cb39-86"><a href="#cb39-86" aria-hidden="true" tabindex="-1"></a>      <span class="at">RMSE_train =</span> RMSE_train,</span>
+<span id="cb39-87"><a href="#cb39-87" aria-hidden="true" tabindex="-1"></a>      <span class="at">R2_train =</span> R2_train,</span>
+<span id="cb39-88"><a href="#cb39-88" aria-hidden="true" tabindex="-1"></a>      <span class="at">RMSE_test =</span> RMSE_test,</span>
+<span id="cb39-89"><a href="#cb39-89" aria-hidden="true" tabindex="-1"></a>      <span class="at">R2_test =</span> R2_test</span>
+<span id="cb39-90"><a href="#cb39-90" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb39-91"><a href="#cb39-91" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb39-92"><a href="#cb39-92" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-93"><a href="#cb39-93" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (RMSE_test <span class="sc">&lt;</span> best_rmse) {</span>
+<span id="cb39-94"><a href="#cb39-94" aria-hidden="true" tabindex="-1"></a>    best_rmse  <span class="ot">&lt;-</span> RMSE_test</span>
+<span id="cb39-95"><a href="#cb39-95" aria-hidden="true" tabindex="-1"></a>    best_model <span class="ot">&lt;-</span> best_model_seed</span>
+<span id="cb39-96"><a href="#cb39-96" aria-hidden="true" tabindex="-1"></a>    best_seed  <span class="ot">&lt;-</span> s</span>
+<span id="cb39-97"><a href="#cb39-97" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb39-98"><a href="#cb39-98" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb39-99"><a href="#cb39-99" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-100"><a href="#cb39-100" aria-hidden="true" tabindex="-1"></a>best_seed</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 178</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb41"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a>best_rmse</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 20.98609</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb43"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a>best_model</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Support Vector Machines with Radial Basis Function Kernel 
+
+160 samples
+ 11 predictor
+
+Pre-processing: centered (11), scaled (11) 
+Resampling: Cross-Validated (10 fold) 
+Summary of sample sizes: 144, 144, 144, 144, 144, 144, ... 
+Resampling results:
+
+  RMSE     Rsquared   MAE     
+  32.8804  0.1994276  23.84479
+
+Tuning parameter 'sigma' was held constant at a value of 0.01
+Tuning
+ parameter 'C' was held constant at a value of 1</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb45"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(resultados_Lim_Inf_SVM)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>    seed  C sigma RMSE_train   R2_train RMSE_test     R2_test
+1      1  5  0.01   30.34194 0.13996781  28.57528 0.346636084
+2      2  5  0.01   28.96376 0.18872561  30.71098 0.214873481
+3      3  1  0.01   29.68078 0.18524722  31.36772 0.090490702
+4      4  1  0.01   30.27400 0.20310922  29.38112 0.126006704
+5      5  1  0.05   27.57172 0.21277732  34.91963 0.162454989
+6      6 10  0.01   30.24039 0.18814776  28.80327 0.158287841
+7      7  1  0.05   29.69930 0.20150073  30.67838 0.119564749
+8      8  1  0.05   26.89315 0.26367260  33.81381 0.195713959
+9      9  1  0.10   30.27886 0.17265989  30.11882 0.126230341
+10    10  5  0.01   28.83186 0.20884524  31.20866 0.147199488
+11    11 10  0.01   29.07724 0.19647886  32.70381 0.168924817
+12    12  5  0.01   30.43062 0.17116602  27.45138 0.309810230
+13    13  1  0.05   28.96819 0.23309935  31.68626 0.074005501
+14    14  1  0.01   28.42666 0.27180787  32.79100 0.049089738
+15    15  1  0.05   30.50529 0.21473121  29.73912 0.133239518
+16    16  5  0.01   28.78574 0.20480949  30.74100 0.186326422
+17    17  1  0.01   28.69581 0.23120484  30.05490 0.086450040
+18    18  5  0.01   31.48976 0.11838983  27.32235 0.218096456
+19    19  5  0.01   27.54445 0.29200009  33.49114 0.089176747
+20    20  5  0.01   30.53885 0.22922117  26.67379 0.201176569
+21    21  1  0.01   29.32179 0.21704304  32.01950 0.113538334
+22    22  1  0.10   31.32187 0.15863287  27.36737 0.174986040
+23    23 10  0.05   34.44522 0.05103223  29.46289 0.246178953
+24    24  1  0.05   30.88784 0.16371708  27.86765 0.155793669
+25    25 10  0.01   32.04923 0.17860653  24.95595 0.215546945
+26    26  5  0.01   27.36344 0.26515124  32.57057 0.093962169
+27    27  1  0.01   28.08959 0.22021155  34.01463 0.078591351
+28    28  5  0.01   28.95906 0.24973117  33.38645 0.065947024
+29    29  1  0.01   31.70901 0.22076583  26.27711 0.141414899
+30    30  1  0.10   32.32236 0.10225015  26.46988 0.268465603
+31    31  1  0.01   28.60812 0.23021840  32.81944 0.085545231
+32    32  1  0.01   29.34282 0.21182655  31.01544 0.061808820
+33    33  5  0.01   29.56473 0.17136150  31.34606 0.179558974
+34    34 10  0.01   29.63655 0.13405758  30.92863 0.271427697
+35    35  1  0.10   29.21025 0.18875167  33.39851 0.082837017
+36    36  5  0.01   29.69743 0.21592376  31.16388 0.068282914
+37    37  1  0.05   30.08270 0.23729838  29.97431 0.081822974
+38    38 10  0.01   29.59772 0.19650279  29.09263 0.205334310
+39    39  1  0.01   28.21729 0.28991623  33.00170 0.088114456
+40    40  5  0.01   30.30339 0.20653376  26.12132 0.232332297
+41    41  1  0.01   30.71264 0.17121141  29.45787 0.121093048
+42    42  1  0.10   30.33804 0.09720425  29.34405 0.253520981
+43    43 10  0.01   29.94405 0.20537268  29.40170 0.208356883
+44    44 10  0.01   29.77711 0.12814268  31.70080 0.219210376
+45    45 10  0.01   27.88045 0.19150484  33.86019 0.184563087
+46    46  1  0.10   32.06350 0.16271668  26.22204 0.212782449
+47    47  5  0.01   29.71685 0.20980043  29.58976 0.106022387
+48    48  1  0.01   30.53600 0.17504854  29.34685 0.134858589
+49    49  5  0.01   30.62938 0.19239750  28.29959 0.194826331
+50    50 10  0.01   32.28971 0.09138612  26.33331 0.382609139
+51    51 10  0.01   30.25277 0.15022246  29.23629 0.279127598
+52    52  1  0.01   28.48124 0.19988630  33.50088 0.125101705
+53    53 10  0.01   32.64799 0.11316586  23.04869 0.432601621
+54    54 10  0.01   27.97810 0.16593289  34.85461 0.206940453
+55    55 10  0.01   29.85269 0.16570190  30.54207 0.251117670
+56    56 10  0.01   32.21778 0.13205311  25.15487 0.336770989
+57    57 10  0.01   29.48269 0.15815132  31.40461 0.316793882
+58    58  5  0.01   28.81871 0.16407652  33.41141 0.172234623
+59    59 10  0.01   28.86222 0.16167767  34.53752 0.103000165
+60    60 10  0.01   30.84206 0.15066990  28.46429 0.268291494
+61    61  1  0.05   29.92036 0.21095955  29.18422 0.155476560
+62    62  1  0.01   29.41554 0.18332683  31.89366 0.138095582
+63    63  1  0.01   28.06423 0.28669442  31.29253 0.104394599
+64    64  5  0.01   30.42094 0.21427747  27.15634 0.221494691
+65    65  5  0.01   31.56967 0.19099749  25.55192 0.163792696
+66    66  1  0.01   30.79053 0.19643501  28.46295 0.108730332
+67    67  5  0.01   29.32668 0.15670051  32.15629 0.125824442
+68    68 10  0.01   29.57327 0.17712270  31.07599 0.163817930
+69    69 10  0.01   29.46743 0.23933252  30.28405 0.103151730
+70    70  5  0.01   29.45073 0.21033224  30.46814 0.144835731
+71    71  5  0.01   30.49163 0.15734929  31.78258 0.144640318
+72    72 10  0.01   31.14428 0.14753266  28.48655 0.253786877
+73    73  5  0.01   29.10447 0.17251377  31.17418 0.188004779
+74    74  5  0.01   27.93741 0.24936816  33.44447 0.047411545
+75    75 10  0.01   32.11706 0.10638971  25.92455 0.393786395
+76    76  1  0.05   28.72312 0.16240991  31.82092 0.212636301
+77    77  1  0.10   29.47795 0.15032669  28.89123 0.257993703
+78    78  5  0.01   28.19282 0.27135154  33.51058 0.089871686
+79    79  1  0.05   30.87260 0.15535013  27.88008 0.158475872
+80    80  1  0.05   29.81154 0.16671424  31.09524 0.155041459
+81    81  5  0.01   31.47725 0.16115029  26.47558 0.204898591
+82    82  5  0.01   29.97402 0.16440616  31.23250 0.206836417
+83    83  5  0.01   27.10348 0.28837541  36.02590 0.016797304
+84    84  5  0.01   32.22401 0.18241838  26.39979 0.162863026
+85    85 10  0.01   29.62443 0.19070835  29.70646 0.182609110
+86    86 10  0.01   31.51827 0.17852170  26.87603 0.182734701
+87    87  1  0.01   30.06538 0.20041475  29.32524 0.153376340
+88    88  1  0.05   27.05215 0.24515841  34.10054 0.109119718
+89    89 10  0.01   29.39970 0.22072012  32.52572 0.181677237
+90    90  1  0.05   30.38975 0.20493524  29.13232 0.121642926
+91    91  1  0.01   30.09773 0.22338979  32.10459 0.032179648
+92    92  1  0.05   29.17558 0.24341936  29.74756 0.099310766
+93    93  5  0.01   30.64360 0.16855622  26.54036 0.276553156
+94    94 10  0.01   31.06064 0.12450067  28.73737 0.249830975
+95    95 10  0.01   30.40438 0.14909731  31.78507 0.177727817
+96    96 10  0.01   30.70308 0.13909823  28.11293 0.201402672
+97    97  1  0.05   29.39635 0.22237512  31.21319 0.102006701
+98    98 10  0.01   29.02217 0.24798722  29.85964 0.205515786
+99    99 10  0.01   30.74266 0.16949269  29.41515 0.244905226
+100  100  1  0.05   31.51096 0.20801259  26.53284 0.292642340
+101  101  1  0.01   31.54296 0.23031716  27.10039 0.126643868
+102  102  1  0.01   30.82204 0.18647862  28.30257 0.083016315
+103  103 10  0.01   29.76036 0.13292733  30.56958 0.322869877
+104  104  1  0.05   30.84627 0.12992252  27.51652 0.186702854
+105  105  1  0.01   30.17284 0.20746451  28.62497 0.052688689
+106  106  1  0.05   31.44824 0.15704355  26.62986 0.319673458
+107  107 10  0.01   30.84339 0.22139282  25.86670 0.177918842
+108  108  1  0.01   30.72571 0.24784751  28.34893 0.115854444
+109  109  1  0.01   31.32274 0.18536055  26.83037 0.164879874
+110  110 10  0.01   30.98457 0.17210398  26.50387 0.243730762
+111  111  1  0.10   32.28994 0.10982471  26.74069 0.233918616
+112  112  1  0.05   31.60764 0.17406873  24.56355 0.248116777
+113  113 10  0.01   31.46448 0.14222352  29.27606 0.328577710
+114  114  5  0.01   29.47532 0.15180996  29.16927 0.317426658
+115  115  1  0.01   31.00693 0.19798481  26.58838 0.151851226
+116  116  5  0.01   29.42483 0.22943763  30.03199 0.138541531
+117  117 10  0.01   30.34629 0.16784570  29.24449 0.172456688
+118  118  5  0.01   29.65258 0.17843299  29.91344 0.213412644
+119  119 10  0.01   31.08555 0.16570000  29.44752 0.177334832
+120  120  5  0.01   30.90956 0.20215914  25.07757 0.185346964
+121  121 10  0.01   30.30625 0.16387650  30.82893 0.315555475
+122  122  5  0.01   27.97597 0.20990374  33.66750 0.139821168
+123  123  5  0.01   30.39540 0.19545844  30.72452 0.081048182
+124  124  1  0.05   30.79562 0.14750166  29.56967 0.188654133
+125  125 10  0.01   33.43646 0.12383917  22.54727 0.374364720
+126  126 10  0.01   28.50334 0.19295081  32.40715 0.147001346
+127  127  1  0.05   30.39727 0.18405126  27.28279 0.271148109
+128  128  5  0.01   28.91203 0.25859574  32.31957 0.122188143
+129  129  1  0.05   27.89315 0.22102304  33.29521 0.076681781
+130  130  1  0.01   28.00261 0.20207645  34.76047 0.103290697
+131  131  5  0.01   30.85130 0.16875993  27.51342 0.232954504
+132  132  5  0.01   29.96053 0.19020354  29.78854 0.183736798
+133  133  1  0.01   29.98841 0.21674579  30.20142 0.124590905
+134  134  5  0.01   28.25816 0.22514218  32.51859 0.149792291
+135  135  1  0.01   30.87205 0.14855658  28.37487 0.152137103
+136  136 10  0.01   31.89277 0.04932729  29.75220 0.304585995
+137  137  1  0.05   28.94533 0.19129901  31.39139 0.270079803
+138  138  5  0.01   28.94776 0.24318512  27.66653 0.191771390
+139  139  1  0.05   29.03571 0.18193158  32.73853 0.105924767
+140  140 10  0.01   28.79971 0.20580382  32.81864 0.108594749
+141  141  1  0.10   29.30056 0.14330054  32.52960 0.227363138
+142  142  1  0.05   30.18930 0.17678700  30.46649 0.157842054
+143  143 10  0.01   30.58564 0.17525545  27.89320 0.224646864
+144  144  5  0.01   27.51282 0.25265899  35.26195 0.064993116
+145  145 10  0.01   29.73439 0.16465641  30.21694 0.231557399
+146  146  1  0.01   30.81540 0.17133291  29.11017 0.108208670
+147  147 10  0.01   28.36656 0.20355464  31.89163 0.211887579
+148  148  5  0.01   29.07148 0.22813567  31.91331 0.065610253
+149  149  1  0.01   27.32001 0.20804852  35.30639 0.136331313
+150  150 10  0.01   27.77498 0.18610718  34.49537 0.137347713
+151  151  1  0.10   32.57152 0.11650662  24.67312 0.229017535
+152  152 10  0.01   31.32014 0.16210863  28.22085 0.213374448
+153  153  1  0.05   30.51913 0.15189138  29.79016 0.205206489
+154  154  1  0.01   29.13799 0.30558693  29.55629 0.054264246
+155  155  5  0.01   30.64017 0.14256978  28.62224 0.259693728
+156  156 10  0.01   27.88356 0.26909496  32.93808 0.162074528
+157  157  5  0.01   30.35121 0.15802124  27.76349 0.239445658
+158  158 10  0.01   29.08051 0.17449115  31.19816 0.218202542
+159  159  5  0.01   30.02517 0.19981503  29.59370 0.156678985
+160  160  5  0.01   29.06157 0.25768072  30.76734 0.132831979
+161  161  1  0.05   31.25204 0.16406300  26.95306 0.238738616
+162  162  1  0.01   30.15600 0.22427882  29.99664 0.055955290
+163  163  1  0.01   30.97089 0.23497683  27.43443 0.116154527
+164  164  1  0.01   29.86052 0.20523247  29.67314 0.058004708
+165  165  5  0.01   31.75644 0.15337986  24.69549 0.314616717
+166  166 10  0.01   32.75796 0.15357751  25.57516 0.222063819
+167  167  1  0.05   30.07845 0.21027482  29.37352 0.182030507
+168  168  1  0.01   28.44038 0.22477790  32.93561 0.071109883
+169  169  1  0.05   30.03938 0.20882757  28.24744 0.209183715
+170  170 10  0.01   29.89229 0.16653383  29.88515 0.174637216
+171  171  5  0.01   28.65548 0.27034122  30.93814 0.115778993
+172  172  1  0.01   28.88579 0.20126507  32.59006 0.113495107
+173  173  5  0.01   29.55856 0.17925149  29.85064 0.216052357
+174  174  1  0.05   30.75722 0.18667308  27.65492 0.129959728
+175  175  1  0.01   31.01810 0.20803729  26.54152 0.139785696
+176  176 10  0.01   31.16878 0.21290664  27.26599 0.232330441
+177  177  1  0.05   28.16404 0.19399142  33.52675 0.175446673
+178  178  1  0.01   32.88040 0.19942758  20.98609 0.239252410
+179  179  1  0.01   28.61314 0.21296486  34.57971 0.121900420
+180  180 10  0.01   30.03413 0.10010336  33.61207 0.157531765
+181  181  1  0.10   28.27406 0.21134992  33.71965 0.114334029
+182  182 10  0.01   31.90691 0.15510849  27.99696 0.185537951
+183  183 10  0.01   28.78802 0.16949927  31.96291 0.283994528
+184  184  1  0.05   28.05165 0.24396871  30.00609 0.140746509
+185  185  1  0.10   32.04622 0.09264821  28.09027 0.171894404
+186  186  1  0.05   31.15742 0.15104261  27.83795 0.182370951
+187  187  1  0.10   28.44339 0.20729672  33.15228 0.235839651
+188  188  1  0.05   28.74158 0.19822844  30.99873 0.179097522
+189  189  1  0.01   29.13635 0.23176924  33.01565 0.030588657
+190  190  5  0.01   30.02183 0.22016219  28.19125 0.151130453
+191  191 10  0.01   31.81010 0.13288050  25.02198 0.229528908
+192  192  5  0.01   27.36524 0.17732853  35.04822 0.211046481
+193  193  5  0.01   30.01218 0.25454528  29.12690 0.129864771
+194  194 10  0.01   29.29144 0.21029475  30.69043 0.185394873
+195  195 10  0.01   32.32115 0.15311428  25.83136 0.222843152
+196  196  5  0.01   30.99573 0.13775868  27.60992 0.258824960
+197  197  5  0.01   31.18361 0.24156534  24.54312 0.134402814
+198  198  5  0.01   28.47924 0.24396074  31.87665 0.143541259
+199  199  1  0.10   30.44772 0.17608920  30.10971 0.121758996
+200  200  1  0.05   30.31596 0.20234250  29.29207 0.143885976
+201  201  1  0.05   31.07725 0.14459228  26.85375 0.412261439
+202  202  1  0.01   30.08786 0.17248561  29.66386 0.167474770
+203  203  5  0.01   28.62882 0.16593351  33.74267 0.160980879
+204  204 10  0.01   28.91293 0.18914395  32.90011 0.139207889
+205  205  1  0.10   28.87361 0.19038069  32.43775 0.090972827
+206  206 10  0.01   32.78911 0.10773222  24.90754 0.197390468
+207  207  5  0.01   29.92993 0.21178535  29.40267 0.193496611
+208  208  5  0.01   27.43607 0.20863151  33.75544 0.138868479
+209  209  5  0.01   29.07318 0.19427911  31.01244 0.175089763
+210  210  1  0.01   29.41212 0.18007226  32.75705 0.088662062
+211  211  1  0.05   29.72706 0.23118501  29.68791 0.100084891
+212  212  1  0.01   29.45504 0.21378465  30.19947 0.144313974
+213  213  5  0.01   29.37043 0.20883883  31.69486 0.097105871
+214  214  1  0.05   30.31320 0.15782673  29.09813 0.165238235
+215  215  1  0.01   29.88842 0.20730863  30.81909 0.073423121
+216  216  1  0.01   28.47602 0.26872720  34.94204 0.067964480
+217  217  1  0.10   29.28261 0.23463459  31.66121 0.100119743
+218  218 10  0.01   30.14447 0.18011884  27.12022 0.257295786
+219  219  1  0.10   30.35200 0.23109470  28.95420 0.103375123
+220  220  1  0.10   30.16036 0.21219115  29.39958 0.126445331
+221  221  5  0.01   29.53014 0.19323275  31.59717 0.089834027
+222  222 10  0.01   29.57234 0.24352539  31.30800 0.102627562
+223  223  1  0.01   28.62985 0.24252653  32.46729 0.101356782
+224  224  1  0.05   28.82425 0.21665237  31.65073 0.073173051
+225  225 10  0.01   29.66543 0.21605876  29.50313 0.216135090
+226  226 10  0.01   29.84408 0.09881056  31.40726 0.218993798
+227  227  1  0.05   28.73545 0.22870175  33.17213 0.060829455
+228  228  5  0.01   29.13222 0.19813237  29.78186 0.238637110
+229  229  1  0.01   30.56450 0.17165613  28.37069 0.148890492
+230  230 10  0.01   28.56452 0.21930383  31.93167 0.132778311
+231  231 10  0.01   30.71604 0.13730176  31.00251 0.151544120
+232  232  1  0.05   30.28886 0.23812073  26.57062 0.127690975
+233  233  5  0.01   28.89514 0.21912993  31.19579 0.145685176
+234  234 10  0.01   29.19497 0.16290891  32.29558 0.140328079
+235  235  5  0.01   29.38120 0.13974079  31.95497 0.156523900
+236  236  1  0.10   31.37492 0.18695197  26.97250 0.066746998
+237  237  5  0.01   31.49129 0.18530895  28.96802 0.179753129
+238  238  5  0.01   30.11679 0.19347441  30.20067 0.149375979
+239  239  5  0.01   29.98091 0.21850799  27.88230 0.137564400
+240  240  1  0.05   29.15838 0.17812092  32.25058 0.058639414
+241  241  5  0.01   30.13671 0.23526154  27.40898 0.245342179
+242  242  5  0.01   26.89413 0.21044520  35.53591 0.130563925
+243  243  1  0.10   31.76034 0.13218685  28.74821 0.150143921
+244  244  5  0.01   29.34754 0.19715955  30.85727 0.136427662
+245  245 10  0.01   28.60041 0.23077757  32.18213 0.254594835
+246  246  1  0.10   32.14296 0.18030097  25.24764 0.178578049
+247  247  5  0.01   28.81514 0.25143202  30.51041 0.164161698
+248  248 10  0.01   30.72059 0.18758107  26.33956 0.239466235
+249  249 10  0.01   31.88499 0.13771399  25.44636 0.215338483
+250  250  1  0.01   32.25747 0.18616737  25.06488 0.132063863
+251  251  1  0.01   29.97704 0.26416203  30.40396 0.035014184
+252  252  1  0.01   31.39566 0.23254121  26.11012 0.117557089
+253  253  1  0.10   32.34274 0.11701669  27.40986 0.170021650
+254  254 10  0.01   27.91688 0.24153945  32.92733 0.165084427
+255  255  1  0.05   31.49907 0.14536262  26.80927 0.162712028
+256  256 10  0.01   29.60254 0.15916460  31.84783 0.268611210
+257  257  5  0.01   29.95826 0.19098044  28.59716 0.201260448
+258  258  1  0.01   30.20936 0.23002964  31.27946 0.118609731
+259  259  1  0.05   28.50145 0.19942394  32.25417 0.253047739
+260  260  1  0.01   31.38885 0.21216770  26.81056 0.056282139
+261  261  5  0.01   29.63406 0.15591414  29.69113 0.220407700
+262  262  5  0.01   30.11643 0.16723221  29.06624 0.161250728
+263  263  5  0.01   30.79267 0.18592598  29.10047 0.102988444
+264  264  5  0.01   29.22358 0.16667188  32.01234 0.176147720
+265  265  1  0.01   30.93620 0.23886897  27.58946 0.137958446
+266  266  1  0.05   29.51512 0.17654717  29.57216 0.180683554
+267  267 10  0.01   31.00068 0.18015077  26.67346 0.233832963
+268  268  5  0.01   30.87977 0.15392422  28.39732 0.185094768
+269  269 10  0.01   31.93947 0.17959762  25.33324 0.222666258
+270  270 10  0.01   28.19509 0.20475022  32.34754 0.178949569
+271  271  1  0.01   30.13050 0.19914177  29.03124 0.096076740
+272  272  5  0.01   30.96522 0.14410709  29.09188 0.127894721
+273  273  1  0.01   27.61080 0.19786164  35.59577 0.054299970
+274  274  1  0.05   30.45935 0.19918518  28.03384 0.128984557
+275  275  1  0.05   32.66748 0.13820116  23.94450 0.312998658
+276  276  1  0.05   27.96117 0.21446519  33.93852 0.141047442
+277  277  1  0.05   31.12349 0.18963481  26.99874 0.087459318
+278  278  5  0.01   32.18693 0.18893499  22.32023 0.177440106
+279  279  1  0.05   28.96467 0.17789014  30.70045 0.223525871
+280  280  1  0.01   29.94718 0.20522916  28.66345 0.125960208
+281  281  5  0.01   27.98876 0.21007699  33.58011 0.132611056
+282  282  5  0.01   30.32464 0.21611438  27.61139 0.237261525
+283  283  5  0.01   29.04125 0.25868931  30.29512 0.186562424
+284  284  1  0.05   31.46261 0.20449118  24.59974 0.227008724
+285  285  5  0.01   28.94973 0.18917239  31.37083 0.154604607
+286  286 10  0.01   32.56023 0.10385289  25.71078 0.342729348
+287  287 10  0.01   30.90428 0.14708703  29.36707 0.175306828
+288  288  1  0.05   29.46639 0.18670465  29.49472 0.175202415
+289  289  1  0.10   32.28944 0.09194149  28.09408 0.286409012
+290  290 10  0.01   28.75790 0.19938477  30.87514 0.260795459
+291  291  1  0.01   27.10956 0.25646964  35.70716 0.038647166
+292  292  1  0.01   30.35714 0.25280839  29.35922 0.076706931
+293  293  5  0.01   31.28280 0.14532577  27.75098 0.214192545
+294  294  5  0.01   28.96964 0.19033713  32.45637 0.144330924
+295  295  1  0.01   29.06038 0.20686624  32.76386 0.057800415
+296  296 10  0.01   32.09118 0.12099851  25.33645 0.273502403
+297  297  1  0.01   28.82134 0.25855890  31.90546 0.019929926
+298  298 10  0.01   31.36413 0.10910911  26.55630 0.278073898
+299  299  5  0.01   28.85074 0.24566229  31.41058 0.151526590
+300  300 10  0.01   30.48290 0.12502366  29.05613 0.339244628
+301  301 10  0.01   27.81274 0.18180392  35.07007 0.165239705
+302  302  5  0.01   30.57543 0.21882920  25.48776 0.200777526
+303  303 10  0.01   29.61662 0.12372572  30.70432 0.353676659
+304  304  1  0.05   31.08024 0.20642507  27.01309 0.147731169
+305  305  1  0.05   29.20060 0.23941523  30.07171 0.138607983
+306  306  1  0.01   29.56878 0.29364921  30.73166 0.013990651
+307  307  1  0.01   31.25403 0.19392956  27.72485 0.094064183
+308  308  1  0.10   30.60145 0.14980551  31.42717 0.130181700
+309  309 10  0.01   30.74055 0.17518019  28.33588 0.225721259
+310  310 10  0.01   29.66660 0.19191503  28.86116 0.292237265
+311  311  1  0.05   29.74343 0.14771569  31.18794 0.201649955
+312  312  1  0.01   29.59336 0.20797827  30.35483 0.126056588
+313  313 10  0.01   30.25995 0.17597013  27.98483 0.175717409
+314  314  1  0.01   31.46366 0.23450460  25.58687 0.104850410
+315  315  1  0.01   30.75004 0.23166030  26.10196 0.129407158
+316  316 10  0.01   32.19554 0.12978872  26.55586 0.269665264
+317  317  1  0.05   28.73008 0.16220712  32.94867 0.095000734
+318  318  5  0.01   29.76904 0.18101436  31.60989 0.174542812
+319  319  1  0.01   27.62979 0.19813537  35.40870 0.125218925
+320  320  5  0.01   29.39113 0.18212183  30.11032 0.188621933
+321  321  5  0.01   28.42559 0.24652539  32.80061 0.165133636
+322  322  5  0.01   28.70636 0.21683821  32.80976 0.138032458
+323  323  5  0.01   29.92494 0.13034124  30.89523 0.228456701
+324  324 10  0.01   31.24200 0.20733847  29.62338 0.173267125
+325  325 10  0.01   29.81703 0.22266135  28.49945 0.121123979
+326  326  5  0.01   29.32752 0.23455644  29.39745 0.153461436
+327  327  5  0.01   28.45260 0.13059115  34.06863 0.177989626
+328  328  5  0.01   29.01948 0.19257036  31.83600 0.137257253
+329  329 10  0.01   30.06924 0.14517491  30.65933 0.271643087
+330  330  1  0.05   28.40445 0.16248126  33.28387 0.147990669
+331  331 10  0.01   32.02106 0.12050465  25.57109 0.266019229
+332  332  5  0.01   28.86746 0.20923843  31.07123 0.082156340
+333  333  5  0.01   30.96365 0.15972330  27.96834 0.076000472
+334  334  1  0.01   29.47134 0.23786118  31.98924 0.075817190
+335  335 10  0.01   31.45143 0.17328878  23.72268 0.280895960
+336  336  1  0.01   30.15106 0.23797775  29.39523 0.072426128
+337  337  1  0.01   30.88931 0.18302876  27.80929 0.066898650
+338  338  1  0.01   31.52729 0.21333196  27.11618 0.108094148
+339  339 10  0.01   28.73969 0.24282670  31.26538 0.152256883
+340  340 10  0.01   28.73224 0.16721999  31.14953 0.279191723
+341  341 10  0.01   29.15203 0.17468060  31.88893 0.197100121
+342  342  1  0.01   29.08569 0.24764373  31.29357 0.088747470
+343  343  5  0.01   29.20556 0.24746093  29.66230 0.128717040
+344  344  1  0.05   31.07728 0.16637440  24.75165 0.242169773
+345  345  1  0.01   29.23063 0.27123948  32.84652 0.007902792
+346  346 10  0.01   28.55388 0.17920900  33.18276 0.208518629
+347  347  5  0.01   28.12181 0.28567893  31.41327 0.109457150
+348  348  1  0.01   31.40326 0.17311077  27.78605 0.139809759
+349  349  5  0.01   30.08993 0.18931567  30.49679 0.167457777
+350  350  1  0.01   30.60456 0.19955192  29.06546 0.115548444
+351  351  1  0.01   30.06573 0.19017355  28.70088 0.173387144
+352  352 10  0.01   30.71564 0.15116814  26.56291 0.238511156
+353  353  5  0.01   32.11066 0.16013113  24.94686 0.147074941
+354  354  1  0.05   30.82102 0.17350371  27.90975 0.157507160
+355  355 10  0.01   30.42185 0.18328514  28.72760 0.225325709
+356  356 10  0.01   30.48895 0.18344969  29.56171 0.195004064
+357  357  1  0.01   27.57926 0.25862931  34.07673 0.054500212
+358  358 10  0.01   30.35707 0.16966951  29.18252 0.314816650
+359  359  1  0.05   30.29953 0.19560087  28.45149 0.105074655
+360  360  5  0.01   29.18285 0.17338951  31.46887 0.262030541
+361  361  1  0.10   30.30461 0.20816834  30.79780 0.123362200
+362  362  5  0.01   29.36343 0.15029620  30.94093 0.214951125
+363  363 10  0.01   30.41946 0.14850125  29.66534 0.205062977
+364  364 10  0.01   29.01559 0.19429765  34.90963 0.147694087
+365  365  5  0.01   31.06834 0.14282395  28.60490 0.237231259
+366  366  5  0.01   30.07073 0.20063070  29.09169 0.129138789
+367  367  1  0.05   29.22811 0.22838173  30.04491 0.163312495
+368  368 10  0.01   29.87759 0.16833378  30.30236 0.127902733
+369  369  1  0.01   29.89207 0.21492984  29.81867 0.142989654
+370  370 10  0.01   30.20429 0.21154619  27.97301 0.121640607
+371  371 10  0.01   31.72640 0.09477129  25.93442 0.309132949
+372  372  1  0.01   29.87109 0.23739701  29.83316 0.050185249
+373  373  1  0.10   28.95827 0.25385138  32.29617 0.059487399
+374  374  5  0.01   27.80305 0.18880299  34.21545 0.155357249
+375  375  1  0.01   30.35830 0.20872022  28.52923 0.131892287
+376  376  5  0.01   30.32213 0.16957003  28.98770 0.183004635
+377  377 10  0.01   30.15509 0.21560463  28.92111 0.195736624
+378  378  1  0.10   31.28527 0.14395116  29.15795 0.078851007
+379  379  5  0.01   29.09269 0.17910483  31.79530 0.103511124
+380  380  1  0.01   32.19170 0.21029988  25.23226 0.094032552
+381  381  1  0.01   31.23858 0.21662631  27.18677 0.097811514
+382  382  5  0.01   29.29937 0.18416356  31.27356 0.225412096
+383  383  1  0.05   30.65266 0.21218440  27.20323 0.142093802
+384  384 10  0.01   31.23742 0.15570911  26.44071 0.180054595
+385  385  1  0.01   28.99149 0.26521039  31.24067 0.074921808
+386  386  1  0.10   31.80533 0.08858964  28.33336 0.240137076
+387  387  1  0.10   29.93202 0.13599990  33.23355 0.141283464
+388  388 10  0.01   31.85808 0.18900544  26.48611 0.281952585
+389  389 10  0.01   30.60012 0.13731323  29.73291 0.233720259
+390  390  5  0.01   30.00556 0.15503846  31.18895 0.135396786
+391  391  1  0.01   30.13611 0.17410095  30.80618 0.139709245
+392  392 10  0.01   26.51072 0.29596501  34.48224 0.075682060
+393  393  5  0.01   28.51608 0.24255470  31.94742 0.065014936
+394  394  1  0.10   31.07946 0.18985625  29.85409 0.163922552
+395  395  5  0.01   28.57162 0.22766393  31.12280 0.157546908
+396  396 10  0.01   29.97059 0.19290954  28.08878 0.202225510
+397  397  5  0.01   31.53446 0.15483151  26.13335 0.157737697
+398  398  5  0.01   30.00642 0.13303646  28.98611 0.260768388
+399  399  5  0.01   30.61963 0.19092804  26.86048 0.174047224
+400  400  5  0.01   31.13495 0.12406766  30.03410 0.203618335
+401  401  5  0.01   29.17580 0.25016861  30.40122 0.101123266
+402  402  1  0.05   29.71861 0.23165901  29.15219 0.209448991
+403  403  1  0.01   32.14155 0.16988193  23.52748 0.182800743
+404  404  5  0.01   28.60757 0.16673388  32.68835 0.184931912
+405  405  1  0.01   31.14158 0.20850508  25.97245 0.165129384
+406  406 10  0.01   29.19693 0.16786826  31.91553 0.173263941
+407  407  5  0.01   30.63185 0.20210029  26.86332 0.176157665
+408  408  5  0.01   32.57925 0.15636581  23.43134 0.297550890
+409  409 10  0.01   29.36215 0.24109125  31.68134 0.147284594
+410  410 10  0.01   31.52628 0.14019670  28.93436 0.238316847
+411  411  1  0.05   29.95926 0.16156001  30.44247 0.138280348
+412  412 10  0.01   29.79039 0.17902003  30.44939 0.141931401
+413  413 10  0.01   28.39594 0.23407804  31.43761 0.171476454
+414  414  1  0.05   30.35215 0.22486058  29.82497 0.167200488
+415  415  5  0.01   30.61103 0.18017587  30.38132 0.189146967
+416  416  5  0.01   29.08752 0.15512479  31.27543 0.246046781
+417  417  1  0.05   26.78616 0.24110692  35.85295 0.109101980
+418  418  1  0.05   31.46295 0.21681310  29.03004 0.056879532
+419  419  1  0.01   29.55408 0.22082095  31.50116 0.063138289
+420  420  5  0.01   27.78317 0.23690178  34.75751 0.077168077
+421  421 10  0.01   30.58808 0.15510035  31.27830 0.192531010
+422  422  5  0.01   30.62138 0.24155814  27.34338 0.162643108
+423  423  5  0.01   31.61041 0.17977105  25.61652 0.260207577
+424  424 10  0.01   31.72681 0.21974354  26.31293 0.268743430
+425  425  1  0.01   27.91462 0.23909444  34.15312 0.085867815
+426  426 10  0.01   28.71367 0.27526849  30.96711 0.148856870
+427  427  1  0.10   30.64969 0.14292636  30.92254 0.227827140
+428  428  1  0.05   29.22672 0.24333423  29.82323 0.114320344
+429  429  5  0.01   28.34453 0.19843455  32.37124 0.148231459
+430  430  1  0.05   28.90972 0.22908448  33.20385 0.080774256
+431  431 10  0.01   30.71664 0.21692975  27.83289 0.141516323
+432  432  1  0.05   31.20685 0.22395102  26.93889 0.136882533
+433  433 10  0.01   28.94973 0.18089451  32.08413 0.207485022
+434  434  5  0.01   30.29806 0.23882328  28.48144 0.073030468
+435  435  5  0.05   33.85691 0.03634003  26.80495 0.432127092
+436  436  5  0.01   31.23647 0.16166899  24.60372 0.220308749
+437  437 10  0.01   30.19684 0.19982973  27.20746 0.162866047
+438  438  1  0.05   30.64053 0.22273574  25.94542 0.234589253
+439  439  1  0.05   27.69158 0.27761570  33.82844 0.104778381
+440  440  5  0.01   30.09192 0.15574324  30.81864 0.159123927
+441  441  5  0.01   28.91958 0.17033774  31.08124 0.183097771
+442  442  1  0.01   28.13263 0.30627819  33.12346 0.010551653
+443  443  5  0.01   27.88049 0.18026449  33.58106 0.103050740
+444  444  1  0.05   30.15074 0.26627248  29.51622 0.082968624
+445  445  1  0.01   30.13770 0.20051307  28.56389 0.112638808
+446  446  1  0.05   30.25901 0.07967233  31.14807 0.181773728
+447  447  1  0.05   30.31121 0.14753758  29.75472 0.183922868
+448  448  5  0.01   31.10636 0.17001843  26.09091 0.235352663
+449  449 10  0.01   30.71651 0.15215493  28.02305 0.281294391
+450  450  5  0.01   32.14391 0.11116987  29.49152 0.229231354
+451  451  1  0.01   28.86276 0.22618473  33.42260 0.124423725
+452  452  1  0.10   29.89252 0.25087484  30.25178 0.075810361
+453  453  5  0.01   31.38868 0.09714826  27.58213 0.209860389
+454  454  1  0.05   31.68233 0.15623905  28.46621 0.120635178
+455  455 10  0.01   29.23113 0.22871139  29.28952 0.183288106
+456  456  1  0.01   30.47414 0.21358429  27.21169 0.135074532
+457  457  1  0.05   31.23015 0.14870852  25.51164 0.368459362
+458  458  5  0.01   30.34984 0.21826925  27.54626 0.106128938
+459  459  5  0.01   30.09467 0.18588001  29.53599 0.125964145
+460  460 10  0.01   31.81599 0.12330964  26.24009 0.297592123
+461  461  1  0.01   28.30283 0.27320447  34.12861 0.083484469
+462  462 10  0.01   31.59319 0.18247057  24.00958 0.349670708
+463  463 10  0.01   31.03347 0.10521838  29.16919 0.341330746
+464  464 10  0.01   29.04229 0.16534989  30.04744 0.231492679
+465  465  1  0.05   30.12247 0.18673248  29.15612 0.161945671
+466  466  5  0.01   30.20565 0.18085623  28.94255 0.114671833
+467  467  5  0.01   28.95788 0.22402334  30.49784 0.160828927
+468  468 10  0.01   31.18997 0.13594369  25.84933 0.316790314
+469  469 10  0.01   31.25268 0.14328573  28.03051 0.216094698
+470  470  1  0.05   31.57935 0.22525283  25.22787 0.138826529
+471  471  1  0.05   30.38958 0.18225877  29.39296 0.101416142
+472  472  5  0.01   26.69597 0.24047732  34.31793 0.173713473
+473  473  5  0.01   31.00914 0.14546138  29.87490 0.128151373
+474  474  1  0.05   32.67662 0.17774992  25.34180 0.162751526
+475  475  1  0.05   30.35009 0.18834037  27.61514 0.206826401
+476  476  5  0.01   29.23859 0.16915687  30.52042 0.242288678
+477  477  1  0.05   31.33386 0.15942782  26.86277 0.138881413
+478  478  1  0.01   28.50292 0.23333304  32.18815 0.072602517
+479  479  1  0.01   31.04211 0.16347100  28.14409 0.190318167
+480  480  5  0.01   29.64477 0.25917736  29.41564 0.166020113
+481  481  5  0.01   29.34548 0.18814531  32.01845 0.107569269
+482  482  5  0.01   29.54064 0.15434969  31.45853 0.161933258
+483  483 10  0.01   29.87338 0.12008673  30.76639 0.209733876
+484  484  1  0.05   31.05456 0.13328280  29.45146 0.161767029
+485  485  1  0.01   29.13357 0.21139307  30.65313 0.218686157
+486  486 10  0.01   31.25115 0.14567903  27.53713 0.426916216
+487  487 10  0.01   31.57686 0.16777465  26.19108 0.195646340
+488  488  1  0.05   29.89916 0.18791531  30.49123 0.109892838
+489  489  1  0.01   31.88586 0.18108294  25.42122 0.073801996
+490  490  5  0.01   26.89050 0.23445710  35.50987 0.081256467
+491  491  5  0.01   28.27900 0.21457749  32.80451 0.125373493
+492  492  5  0.01   31.63440 0.15117777  27.46107 0.320564981
+493  493  5  0.01   31.20281 0.14224861  28.17184 0.089230336
+494  494  1  0.05   31.88505 0.20643392  26.72759 0.151914433
+495  495  1  0.01   29.20832 0.21309979  31.71278 0.040903550
+496  496  5  0.01   29.00694 0.18997444  32.71166 0.138695203
+497  497  1  0.05   31.25053 0.18800080  29.10815 0.189196837
+498  498  5  0.01   30.05738 0.18899794  28.46028 0.131293793
+499  499 10  0.01   27.70100 0.16323529  35.38790 0.217115780
+500  500  1  0.01   30.93782 0.17548688  29.51564 0.088828204</code></pre>
+</div>
+</div>
+</section>
+<section id="importancia-de-variables" class="level1">
+<h1>17.Importancia de variables</h1>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb47"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(caret)</span>
+<span id="cb47-2"><a href="#cb47-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-3"><a href="#cb47-3" aria-hidden="true" tabindex="-1"></a>var_imp_svm_obj <span class="ot">&lt;-</span> <span class="fu">varImp</span>(best_model, <span class="at">scale =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb47-4"><a href="#cb47-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-5"><a href="#cb47-5" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(var_imp_svm_obj)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>loess r-squared variable importance
+
+                          Overall
+MCARI                      100.00
+HH                          91.82
+Suelos_                     64.25
+CI                          63.54
+Valley_Depth                55.44
+C.O                         52.00
+HV                          50.54
+NDTI                        41.88
+LS_Factor                   19.86
+Topographic_Wetness_Index   18.09
+Relative_Slope_Position      0.00</code></pre>
+</div>
+</div>
+</section>
+<section id="importancia-de-variables-1" class="level1">
+<h1>18.Importancia de variables</h1>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb49"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a>imp <span class="ot">&lt;-</span> var_imp_svm_obj<span class="sc">$</span>importance</span>
+<span id="cb49-2"><a href="#cb49-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb49-3"><a href="#cb49-3" aria-hidden="true" tabindex="-1"></a>imp<span class="sc">$</span>variables <span class="ot">&lt;-</span> <span class="fu">rownames</span>(imp)</span>
+<span id="cb49-4"><a href="#cb49-4" aria-hidden="true" tabindex="-1"></a><span class="fu">rownames</span>(imp) <span class="ot">&lt;-</span> <span class="cn">NULL</span></span>
+<span id="cb49-5"><a href="#cb49-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb49-6"><a href="#cb49-6" aria-hidden="true" tabindex="-1"></a>var_imp_svm <span class="ot">&lt;-</span> imp[, <span class="fu">c</span>(<span class="st">"variables"</span>, <span class="st">"Overall"</span>)]</span>
+<span id="cb49-7"><a href="#cb49-7" aria-hidden="true" tabindex="-1"></a><span class="fu">colnames</span>(var_imp_svm) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"variables"</span>, <span class="st">"importance"</span>)</span>
+<span id="cb49-8"><a href="#cb49-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb49-9"><a href="#cb49-9" aria-hidden="true" tabindex="-1"></a>var_imp_svm<span class="sc">$</span>importance <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(var_imp_svm<span class="sc">$</span>importance)</span>
+<span id="cb49-10"><a href="#cb49-10" aria-hidden="true" tabindex="-1"></a>var_imp_svm <span class="ot">&lt;-</span> var_imp_svm[<span class="fu">order</span>(<span class="sc">-</span>var_imp_svm<span class="sc">$</span>importance), ]</span>
+<span id="cb49-11"><a href="#cb49-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb49-12"><a href="#cb49-12" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(var_imp_svm)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>                   variables importance
+6                      MCARI  100.00000
+3                         HH   91.82094
+9                    Suelos_   64.25439
+1                         CI   63.54368
+11              Valley_Depth   55.43582
+2                        C.O   52.00287
+4                         HV   50.54209
+7                       NDTI   41.88171
+5                  LS_Factor   19.85585
+10 Topographic_Wetness_Index   18.09381
+8    Relative_Slope_Position    0.00000</code></pre>
+</div>
+</div>
+</section>
+<section id="se-grafican-para-entender-cúal-está-influyendo-más-en-el-modelo" class="level1">
+<h1>19.Se grafican para entender cúal está influyendo más en el modelo</h1>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb51"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb51-2"><a href="#cb51-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb51-3"><a href="#cb51-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb51-4"><a href="#cb51-4" aria-hidden="true" tabindex="-1"></a>SVM_Inf <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(var_imp_svm <span class="sc">%&gt;%</span> <span class="fu">arrange</span>(importance),</span>
+<span id="cb51-5"><a href="#cb51-5" aria-hidden="true" tabindex="-1"></a>       <span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">reorder</span>(variables, importance), <span class="at">y =</span> importance)) <span class="sc">+</span></span>
+<span id="cb51-6"><a href="#cb51-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>(<span class="at">stat =</span> <span class="st">"identity"</span>) <span class="sc">+</span></span>
+<span id="cb51-7"><a href="#cb51-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coord_flip</span>() <span class="sc">+</span></span>
+<span id="cb51-8"><a href="#cb51-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb51-9"><a href="#cb51-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Variables"</span>,</span>
+<span id="cb51-10"><a href="#cb51-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Importancia"</span>,</span>
+<span id="cb51-11"><a href="#cb51-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Importancia de variables – SVM (Lim_inf)"</span></span>
+<span id="cb51-12"><a href="#cb51-12" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb51-13"><a href="#cb51-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb51-14"><a href="#cb51-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(</span>
+<span id="cb51-15"><a href="#cb51-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.text  =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">10</span>),</span>
+<span id="cb51-16"><a href="#cb51-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.title =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">14</span>),</span>
+<span id="cb51-17"><a href="#cb51-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">18</span>)</span>
+<span id="cb51-18"><a href="#cb51-18" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb51-19"><a href="#cb51-19" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(SVM_Inf)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="SVM_Lim_Inf_files/figure-html/unnamed-chunk-19-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="guardar-grafica-importancia_variables" class="level1">
+<h1>20. Guardar grafica Importancia_variables</h1>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb52"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggsave</span>(</span>
+<span id="cb52-2"><a href="#cb52-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">filename =</span> <span class="st">"Importancia_variables_SVM_Inf.png"</span>,</span>
+<span id="cb52-3"><a href="#cb52-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">plot =</span> SVM_Inf,</span>
+<span id="cb52-4"><a href="#cb52-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">path =</span> <span class="st">"D:/MAESTRIA/Trabajo_final/graficos resultados"</span>,</span>
+<span id="cb52-5"><a href="#cb52-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">width =</span> <span class="dv">18</span>,</span>
+<span id="cb52-6"><a href="#cb52-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">height =</span> <span class="dv">14</span>,</span>
+<span id="cb52-7"><a href="#cb52-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">units =</span> <span class="st">"cm"</span>,</span>
+<span id="cb52-8"><a href="#cb52-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">dpi =</span> <span class="dv">300</span></span>
+<span id="cb52-9"><a href="#cb52-9" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="predicción-y-visualización" class="level1">
+<h1>Predicción y visualización ——————————–</h1>
+</section>
+<section id="nombres-de-capas-variables-del-modelo" class="level1">
+<h1>21. Nombres de capas = variables del modelo</h1>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb53"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a>dataVARS <span class="ot">&lt;-</span> <span class="fu">c</span>( <span class="st">"CI"</span>,<span class="st">"C.O"</span>, <span class="st">"MCARI"</span>, <span class="st">"LS_Factor"</span>, <span class="st">"NDTI"</span>, <span class="st">"HV"</span>,<span class="st">"HH"</span>,</span>
+<span id="cb53-2"><a href="#cb53-2" aria-hidden="true" tabindex="-1"></a> <span class="st">"Relative_Slope_Position"</span>, <span class="st">"Suelos_"</span>, <span class="st">"Topographic_Wetness_Index"</span> ,<span class="st">"Valley_Depth"</span>)</span>
+<span id="cb53-3"><a href="#cb53-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb53-4"><a href="#cb53-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb53-5"><a href="#cb53-5" aria-hidden="true" tabindex="-1"></a><span class="co"># En terra usamos 'subset' para quedarnos solo con las capas que necesitamos</span></span>
+<span id="cb53-6"><a href="#cb53-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Asumiendo que tu objeto raster se llama 'raster' (o cámbiale el nombre)</span></span>
+<span id="cb53-7"><a href="#cb53-7" aria-hidden="true" tabindex="-1"></a>r_predictores <span class="ot">&lt;-</span> <span class="fu">subset</span>(raster, dataVARS)</span>
+<span id="cb53-8"><a href="#cb53-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb53-9"><a href="#cb53-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Verificación de seguridad (Debe salir T</span></span>
+<span id="cb53-10"><a href="#cb53-10" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="st">"¿Están todas las variables?"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "¿Están todas las variables?"</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb55"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb55-1"><a href="#cb55-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">all</span>(dataVARS <span class="sc">%in%</span> <span class="fu">names</span>(r_predictores)))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] TRUE</code></pre>
+</div>
+</div>
+</section>
+<section id="aplicar-modelo" class="level1">
+<h1>22. Aplicar modelo</h1>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb57"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb57-1"><a href="#cb57-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(terra)</span>
+<span id="cb57-2"><a href="#cb57-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb57-3"><a href="#cb57-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb57-4"><a href="#cb57-4" aria-hidden="true" tabindex="-1"></a>Limite_Inf_SVM <span class="ot">&lt;-</span> terra<span class="sc">::</span><span class="fu">predict</span>(</span>
+<span id="cb57-5"><a href="#cb57-5" aria-hidden="true" tabindex="-1"></a>  r_predictores,</span>
+<span id="cb57-6"><a href="#cb57-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">model =</span> best_model,   <span class="co"># ← OBLIGATORIO</span></span>
+<span id="cb57-7"><a href="#cb57-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">fun =</span> <span class="cf">function</span>(model, d, ...) {</span>
+<span id="cb57-8"><a href="#cb57-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">predict</span>(model, d)</span>
+<span id="cb57-9"><a href="#cb57-9" aria-hidden="true" tabindex="-1"></a>  },</span>
+<span id="cb57-10"><a href="#cb57-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">na.rm =</span> <span class="cn">TRUE</span></span>
+<span id="cb57-11"><a href="#cb57-11" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+|---------|---------|---------|---------|
+=========================================
+                                          </code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb59"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb59-1"><a href="#cb59-1" aria-hidden="true" tabindex="-1"></a>cols <span class="ot">&lt;-</span> <span class="fu">hcl.colors</span>(<span class="dv">100</span>, <span class="st">"Spectral"</span>)</span>
+<span id="cb59-2"><a href="#cb59-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb59-3"><a href="#cb59-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb59-4"><a href="#cb59-4" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(</span>
+<span id="cb59-5"><a href="#cb59-5" aria-hidden="true" tabindex="-1"></a>  Limite_Inf_SVM,</span>
+<span id="cb59-6"><a href="#cb59-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">col =</span> cols,</span>
+<span id="cb59-7"><a href="#cb59-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">main =</span> <span class="st">"Predicción del Límite Inferior (SVM)"</span></span>
+<span id="cb59-8"><a href="#cb59-8" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="SVM_Lim_Inf_files/figure-html/unnamed-chunk-22-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="guardar-modelo" class="level1">
+<h1>23.Guardar modelo</h1>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb60"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb60-1"><a href="#cb60-1" aria-hidden="true" tabindex="-1"></a><span class="fu">writeRaster</span>(Limite_Inf_SVM, <span class="st">"D:/Mapa final/Limite_Inferior_SVM.tif"</span>, <span class="at">overwrite =</span> <span class="cn">TRUE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+|---------|---------|---------|---------|
+=========================================
+                                          </code></pre>
+</div>
+</div>
+</section>
+<section id="guardar-imagen-png-modelo" class="level1">
+<h1>24.Guardar imagen png modelo</h1>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb62"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb62-1"><a href="#cb62-1" aria-hidden="true" tabindex="-1"></a><span class="fu">png</span>(</span>
+<span id="cb62-2"><a href="#cb62-2" aria-hidden="true" tabindex="-1"></a>  <span class="st">"D:/MAESTRIA/Trabajo_final/graficos resultados/Limite_Inferior_SVM.png"</span>,</span>
+<span id="cb62-3"><a href="#cb62-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">width =</span> <span class="dv">3000</span>,</span>
+<span id="cb62-4"><a href="#cb62-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">height =</span> <span class="dv">2500</span>,</span>
+<span id="cb62-5"><a href="#cb62-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">res =</span> <span class="dv">300</span></span>
+<span id="cb62-6"><a href="#cb62-6" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb62-7"><a href="#cb62-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb62-8"><a href="#cb62-8" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(</span>
+<span id="cb62-9"><a href="#cb62-9" aria-hidden="true" tabindex="-1"></a>  Limite_Inf_SVM,</span>
+<span id="cb62-10"><a href="#cb62-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">main =</span> <span class="st">"Predicción del Límite Inferior del departamento de Meta y Vichada (SVM)"</span></span>
+<span id="cb62-11"><a href="#cb62-11" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb62-12"><a href="#cb62-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb62-13"><a href="#cb62-13" aria-hidden="true" tabindex="-1"></a><span class="fu">dev.off</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>png 
+  2 </code></pre>
+</div>
+</div>
+</section>
+<section id="recorte-de-un-area-especifica" class="level1">
+<h1>25. recorte de un area especifica</h1>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb64"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb64-1"><a href="#cb64-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(terra)</span>
+<span id="cb64-2"><a href="#cb64-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb64-3"><a href="#cb64-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Raster de predicción</span></span>
+<span id="cb64-4"><a href="#cb64-4" aria-hidden="true" tabindex="-1"></a>r <span class="ot">&lt;-</span> Limite_Inf_SVM   <span class="co"># o rast("Limite_Inferior_RF.tif")</span></span>
+<span id="cb64-5"><a href="#cb64-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb64-6"><a href="#cb64-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Polígono de la zona de interés</span></span>
+<span id="cb64-7"><a href="#cb64-7" aria-hidden="true" tabindex="-1"></a>zona <span class="ot">&lt;-</span> <span class="fu">vect</span>(<span class="st">"D:/MAESTRIA/Trabajo_final/shp tesis/Altillanura_2.shp"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="reproyectar" class="level1">
+<h1>26.Reproyectar</h1>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb65"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb65-1"><a href="#cb65-1" aria-hidden="true" tabindex="-1"></a>zona <span class="ot">&lt;-</span> <span class="fu">project</span>(zona, <span class="fu">crs</span>(r))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="cortar-area-de-estudio" class="level1">
+<h1>27.Cortar area de estudio</h1>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb66"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb66-1"><a href="#cb66-1" aria-hidden="true" tabindex="-1"></a>r_crop <span class="ot">&lt;-</span> <span class="fu">crop</span>(r, zona)</span>
+<span id="cb66-2"><a href="#cb66-2" aria-hidden="true" tabindex="-1"></a>r_crop <span class="ot">&lt;-</span> <span class="fu">mask</span>(r_crop, zona)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="mapa" class="level1">
+<h1>28.Mapa</h1>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb67"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb67-1"><a href="#cb67-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(r_crop, <span class="at">main =</span> <span class="st">"Predicion Limite Inferior (SVM)</span><span class="sc">\n</span><span class="st"> Altillanura Plana del Departamento del Meta"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="SVM_Lim_Inf_files/figure-html/unnamed-chunk-28-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="guardar-mapa" class="level1">
+<h1>29.Guardar mapa</h1>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb68"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb68-1"><a href="#cb68-1" aria-hidden="true" tabindex="-1"></a><span class="fu">writeRaster</span>(</span>
+<span id="cb68-2"><a href="#cb68-2" aria-hidden="true" tabindex="-1"></a>  r_crop,</span>
+<span id="cb68-3"><a href="#cb68-3" aria-hidden="true" tabindex="-1"></a>  <span class="st">"D:/Mapa final/Lim_inf_SVM_Altillanura.tif"</span>,</span>
+<span id="cb68-4"><a href="#cb68-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">overwrite =</span> <span class="cn">TRUE</span></span>
+<span id="cb68-5"><a href="#cb68-5" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="guardar-mapa-como-imagen" class="level1">
+<h1>30.Guardar mapa como imagen</h1>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb69"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb69-1"><a href="#cb69-1" aria-hidden="true" tabindex="-1"></a><span class="fu">png</span>(</span>
+<span id="cb69-2"><a href="#cb69-2" aria-hidden="true" tabindex="-1"></a>  <span class="st">"D:/MAESTRIA/Trabajo_final/graficos resultados/Limite_Inferior_Altillanura_SVM.png"</span>,</span>
+<span id="cb69-3"><a href="#cb69-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">width =</span> <span class="dv">3000</span>,</span>
+<span id="cb69-4"><a href="#cb69-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">height =</span> <span class="dv">2500</span>,</span>
+<span id="cb69-5"><a href="#cb69-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">res =</span> <span class="dv">300</span></span>
+<span id="cb69-6"><a href="#cb69-6" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb69-7"><a href="#cb69-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb69-8"><a href="#cb69-8" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(</span>
+<span id="cb69-9"><a href="#cb69-9" aria-hidden="true" tabindex="-1"></a>  r_crop,</span>
+<span id="cb69-10"><a href="#cb69-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">main =</span> <span class="st">"Predicion Limite Inferior (SVM)</span><span class="sc">\n</span><span class="st"> Altillanura Plana del Departamento del Meta"</span></span>
+<span id="cb69-11"><a href="#cb69-11" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb69-12"><a href="#cb69-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb69-13"><a href="#cb69-13" aria-hidden="true" tabindex="-1"></a><span class="fu">dev.off</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>png 
+  2 </code></pre>
+</div>
+</div>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
